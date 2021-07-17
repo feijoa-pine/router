@@ -1,0 +1,19 @@
+## test Routes YAML.
+---
+routes:
+    home:
+        index@get:
+            module: home
+            action: index
+    admin:
+        service:
+            index@get:
+                module: admin/service
+                action: index
+            sort_service@post:
+                module: admin/service
+                action: sort_service
+            master:
+                "{id}/register/{num}@post":
+                    module: admin/service/master
+                    action: register
