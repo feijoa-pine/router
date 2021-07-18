@@ -14,6 +14,18 @@ namespace mikisan\core\util;
 
 class ANALYZER
 {
+    /**
+     * 先頭と末尾の / を取り除く
+     * 
+     * @param   string  $request_uri
+     * @return  string
+     */
+    private static function to_naked(string $request_uri): string
+    {
+        $temp   = preg_replace("|/+|u", "/", $request_uri);
+        if($temp === "/")   { return ""; }
+        return preg_replace("|^/?([^/].+[^/])/?|u", "$1", $temp);
+    }
     
     /**
      * 渡されたURIを解析し、メソッド、アクション等の情報を取得する
@@ -23,7 +35,7 @@ class ANALYZER
      * @param   array   $routes             routes.ymlに設定されているルート情報
      * @return  \stdClass                   オブジェクト full_command, command, action, params
      */
-    public static function analyze(string $request_method, string $request_uri, $routes) : \stdClass
+    public static function analyze(string $request_method, string $request_uri, array $routes): \stdClass
     {
         $request_path       = self::to_naked($request_uri);
         
@@ -32,31 +44,20 @@ class ANALYZER
             list($route_path, $temp_method)    = explode("@", $route);
             $route_method   = isset($temp_method) ? strtoupper($temp_method) : "WILD";
             
-            if($route_method !== $request_method)    { continue; }         // HTTPメソッド判定
+            if($route_method !== "WILD" && $route_method !== $request_method)   { continue; }  // HTTPメソッド判定
             
             $route_parts    = explode("/", $route_path);
             $request_parts  = explode("/", $request_path);
             $params         = [];
             $args           = [];
-            if(self::collate($route_parts, $request_parts, $params, $args)) { continue; }
+            if(!self::collate($route_parts, $request_parts, $params, $args))     { continue; }
             
             // マッチ（ルート決定）        
-            return self::set_route_obj($route_method, $setting, $params, $args);
+            return self::set_route_obj($route, $route_method, $setting, $params, $args);
         }
         
         // ルートが見つからない
         return self::default_route_obj();
-    }
-    
-    /**
-     * 先頭と末尾の / を取り除く
-     * 
-     * @param   string  $request_uri
-     * @return  string
-     */
-    private static function to_naked(string $request_uri): string
-    {
-        return preg_replace("|^/?(.+)/?$|u", "$1", $request_uri);
     }
     
     /**
@@ -71,7 +72,7 @@ class ANALYZER
         $has_wildcard   = ($route_parts[count($route_parts) - 1] === "**") ? true : false; 
         
         // ルートの照合処理
-        $i              = 0;
+        $i  = 0;
         foreach($route_parts as $route)
         {
             // 埋め込みパラメタの処理
@@ -97,16 +98,18 @@ class ANALYZER
     /**
      * ルートオブジェクトを生成して返す
      * 
+     * @param   string  $route
      * @param   string  $route_method
      * @param   array   $setting
      * @param   array   $params
      * @param   array   $args
      * @return  \stdClass
      */
-    private static function set_route_obj(string $route_method, array $setting, array $params, array $args): \stdClass
+    private static function set_route_obj(string $route, string $route_method, array $setting, array $params, array $args): \stdClass
     {
         $obj            = new \stdClass();
         $obj->resolved  = true;
+        $obj->route     = $route;
         $obj->method    = $route_method;
         $obj->module    = $setting["module"];
         $obj->action    = $setting["action"];
@@ -124,6 +127,7 @@ class ANALYZER
     {
         $obj            = new \stdClass();
         $obj->resolved  = false;
+        $obj->route     = "";
         $obj->method    = "GET";
         $obj->module    = "home";
         $obj->action    = "index";

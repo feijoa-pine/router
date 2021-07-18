@@ -16,12 +16,28 @@ use mikisan\core\util\FETCHER;
 $project_root = realpath(__DIR__ . "/../../../../");
 require "{$project_root}/vendor/autoload.php";
 require "{$project_root}/core/utilities/yaml/YAML.php";
+require "{$project_root}/core/exceptions/FileNotFoundException.php";
+require "{$project_root}/core/exceptions/FileOpenFailedException.php";
 
-class FETCHER_Test extends TestCase
+require_once __DIR__  . "/TestCaseExtend.php";
+
+class FETCHER_Test extends TestCaseExtend
 {
+    private $class_name = "mikisan\core\util\FETCHER";
     
     /**
-     * routes.yml を読み込み、ルートリストを取得するテスト
+     * ルートの /index アクション表記を省略する　のテスト
+     */
+    public function test_reformat_route()
+    {
+        $this->assertEquals("service/sort_service@post", $this->callMethod($this->class_name, "reformat_route", ["service/sort_service@post"]));
+        $this->assertEquals("service@get", $this->callMethod($this->class_name, "reformat_route", ["service/index@get"]));
+        $this->assertEquals("@get", $this->callMethod($this->class_name, "reformat_route", ["index@get"]));
+        $this->assertEquals("@get", $this->callMethod($this->class_name, "reformat_route", ["@get"]));
+    }
+    
+    /**
+     * routes.yml を読み込み、ルートリストを取得する　のテスト
      */
     public function test_fetch()
     {
@@ -29,15 +45,18 @@ class FETCHER_Test extends TestCase
         $r          = FETCHER::fetch($yml_path);
         //
         $this->assertIsArray($r);
-        $this->assertCount(4, $r);
+        $this->assertCount(5, $r);
         //
-        $this->assertArrayHasKey("home@get", $r);
+        $this->assertArrayHasKey("@get", $r);
+        $this->assertArrayHasKey("check@wild", $r);
         $this->assertArrayHasKey("admin/service@get", $r);
         $this->assertArrayHasKey("admin/service/sort_service@post", $r);
         $this->assertArrayHasKey("admin/service/master/{id}/register/{num}@post", $r);
         //
-        $this->assertEquals("home", $r["home@get"]["module"]);
-        $this->assertEquals("index", $r["home@get"]["action"]);
+        $this->assertEquals("home", $r["@get"]["module"]);
+        $this->assertEquals("index", $r["@get"]["action"]);
+        $this->assertEquals("home", $r["check@wild"]["module"]);
+        $this->assertEquals("check", $r["check@wild"]["action"]);
         $this->assertEquals("admin/service", $r["admin/service@get"]["module"]);
         $this->assertEquals("index", $r["admin/service@get"]["action"]);
         $this->assertEquals("admin/service", $r["admin/service/sort_service@post"]["module"]);
@@ -45,5 +64,5 @@ class FETCHER_Test extends TestCase
         $this->assertEquals("admin/service/master", $r["admin/service/master/{id}/register/{num}@post"]["module"]);
         $this->assertEquals("register", $r["admin/service/master/{id}/register/{num}@post"]["action"]);
     }
-
+    
 }
