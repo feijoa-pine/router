@@ -11,19 +11,22 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
-use mikisan\core\util\FETCH_ROUTES;
+use mikisan\core\util\FETCHER;
 
 $project_root = realpath(__DIR__ . "/../../../../");
 require "{$project_root}/vendor/autoload.php";
 require "{$project_root}/core/utilities/yaml/YAML.php";
 
-class FETCH_ROUTER_Test extends TestCase
+class FETCHER_Test extends TestCase
 {
-
+    
+    /**
+     * routes.yml を読み込み、ルートリストを取得するテスト
+     */
     public function test_fetch()
     {
         $yml_path   = realpath(__DIR__ . "/routes.yml");
-        $r          = FETCH_ROUTES::fetch($yml_path);
+        $r          = FETCHER::fetch($yml_path);
         //
         $this->assertIsArray($r);
         $this->assertCount(4, $r);
