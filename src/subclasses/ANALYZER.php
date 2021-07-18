@@ -50,6 +50,7 @@ class ANALYZER
             $request_parts  = explode("/", $request_path);
             $params         = [];
             $args           = [];
+            
             if(!self::collate($route_parts, $request_parts, $params, $args))     { continue; }
             
             // マッチ（ルート決定）        
@@ -78,12 +79,13 @@ class ANALYZER
             // 埋め込みパラメタの処理
             if(preg_match("/{.+}/u", $route))
             {
-                $id = preg_replace("/{(.+)}/u", "$1", $route);          // {id}埋め込みパラメタをembedded配列に格納
+                $id             = preg_replace("/{(.+)}/u", "$1", $route);  // {id}埋め込みパラメタをembedded配列に格納
                 $params[$id]    = $request_parts[$i];
+                $i++;
                 continue;
             }
-            if($route === "**")                 { break; }              // wildcard　の場合はここで照合終了
-            if($route !== $request_parts[$i])   { return false; }       // マッチング
+            if($route === "**")                 { break; }          // wildcard　の場合はここで照合終了
+            if($route !== $request_parts[$i])   { return false; }   // マッチング
             $i++;
         }
         

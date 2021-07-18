@@ -19,3 +19,11 @@ routes:
     check:
         module: home
         action: check
+    blog:
+        writer/**@get:
+            module: blog
+            action: writer
+        "{id}/category/{cat_id}@get":
+            module: blog
+            action: category
+        

@@ -13,15 +13,15 @@ declare(strict_types=1);
 namespace mikisan\core\util;
 use \mikisan\core\exception\InvalidParameterAccessException;
 
-require __DIR__ . "/subclasses/FETCHER.php";
-require __DIR__ . "/subclasses/ANALYZER.php";
+require_once __DIR__ . "/subclasses/FETCHER.php";
+require_once __DIR__ . "/subclasses/ANALYZER.php";
 
 class Router
 {
     const ENTRY_WEB = "web", ENTRY_CLI = "cli";
 
     private static $instance;
-    private $accessable = ["resolved", "method", "module", "action", "params", "args"];
+    private $accessable = ["resolved", "route", "method", "module", "action", "params", "args"];
     private $resolved   = false;
     private $method     = "";
     private $module     = "";
@@ -36,7 +36,7 @@ class Router
      * @return  mixed
      * @throws  InvalidParameterAccessException
      */
-    public function route($key)
+    public function __get($key)
     {
         if(!in_array($key, $this->accessable, true))
         {

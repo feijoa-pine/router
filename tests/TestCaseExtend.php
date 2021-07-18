@@ -29,7 +29,12 @@ class TestCaseExtend extends TestCase
         $method         = $reflection->getMethod($method);
         $method->setAccessible(true);
 
-    return $method->invokeArgs(new $class_name(), $parameters);
+        return $method->invokeArgs(new $class_name(), $parameters);
     }
-
+    
+    public function test_test()
+    {
+        $this->assertTrue(true);
+    }
+    
 }
