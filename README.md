@@ -6,7 +6,7 @@ PHPの汎用ルーターです。
 
 ## 使い方
 
-静的メソッド resolve() の引数に、ルート構造（YAML形式）を記したファイルへのパスを渡す事で、ルート解決されます。
+静的メソッド Router::resolve() の引数に、ルート構造（YAML形式）を記したファイルへのパスを渡す事で、ルート解決されます。
 
 ```
 use \mikisan\core\util\Router;
@@ -48,7 +48,7 @@ routes:
 
 #### ドキュメントルートへのアクセス
 
-GET http(s)://dome.domain/
+例）GET http(s)://dome.domain/
 
 ```
 $route->resolved:   true
@@ -60,7 +60,7 @@ $route->action:     index
 
 #### POSTメソッドでのアクセス
 
-POST http(s)://dome.domain/admin/service/sort_service
+例）POST http(s)://dome.domain/admin/service/sort_service
 
 ```
 $route->resolved:   true
@@ -72,7 +72,7 @@ $route->action:     sort_service
 
 #### 許可されていないメソッドでのアクセス
 
-GET http(s)://dome.domain/admin/service/sort_service
+例）GET http(s)://dome.domain/admin/service/sort_service
 
 ```
 $route->resolved:   false
@@ -84,7 +84,7 @@ $route->action:     index
 
 #### 埋め込みパラメタを使ったアクセス
 
-POST http(s)://dome.domain/admin/service/1/register/2
+例）POST http(s)://dome.domain/admin/service/1/register/2
 
 ```
 $route->resolved:   true
@@ -97,7 +97,7 @@ $route->params:     ["id" => "1", "num" => "2"]
 
 #### 引数を使ったアクセス
 
-GET http(s)://dome.domain/blog/writer/favorit/food/123
+例）GET http(s)://dome.domain/blog/writer/favorit/food/123
 
 ```
 $route->resolved:   true
@@ -110,7 +110,7 @@ $route->args:       ["favorit", "food", "123"]
 
 ### 2. CLIアクセスでのルート解決結果
 
-php some_program.php make controller test
+例）php some_program.php make controller test
 
 ```
 $route->resolved:   true
@@ -121,3 +121,22 @@ $route->action:     make
 $route->params:     ["target_structure" => "controller", "target_module" => "test"]
 ```
 
+## Publicメソッド
+
+### Router::resolve(string filepath): Router
+
+### Router::route(): Router
+
+ルート解決済みのRouterオブジェクトを返します。
+
+## アクセス可能なプロパティ
+
+```
+bool    $resolved   ルート解決されたか？
+string  $method     HTTPメソッド、または"CLI"
+string  $route      使用されたルート定義
+string  $module     ルート解決結果：使用するモジュール
+string  $action     ルート解決結果：使用するアクション
+array   $params     取得された埋め込みパラメタ
+array   $args       取得された末尾引数
+```
