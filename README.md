@@ -10,8 +10,7 @@ PHPの汎用ルーターです。
 
 ```
 use \mikisan\core\util\Router;
-$route_yml_path = "/path/to/route.yml";
-$route          = Router::resolve($route_yml_path);
+$route  = Router::resolve("/path/to/route.yml");
 ```
 
 ## ルート構造（YAML形式）の例
