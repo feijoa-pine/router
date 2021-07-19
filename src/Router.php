@@ -2,7 +2,7 @@
 
 /**
  * Project Name: mikisan-ware
- * Description : ルーター
+ * Description : 汎用ルーター
  * Start Date  : 2021/07/17
  * Copyright   : Katsuhiko Miki   https://striking-forces.jp
  * 
@@ -11,16 +11,23 @@
 declare(strict_types=1);
 
 namespace mikisan\core\util;
+
 use \mikisan\core\exception\InvalidParameterAccessException;
+use \mikisan\core\exception\NotInitializedException;
 
 require_once __DIR__ . "/subclasses/FETCHER.php";
 require_once __DIR__ . "/subclasses/ANALYZER.php";
 
+class EntryPoint
+{
+    const WEB = "web", CLI = "cli";
+}
+
 class Router
 {
-    const ENTRY_WEB = "web", ENTRY_CLI = "cli";
 
     private static $instance;
+    private static $entrypoint;
     private $accessable = ["resolved", "route", "method", "module", "action", "params", "args"];
     private $resolved   = false;
     private $method     = "";
@@ -28,9 +35,9 @@ class Router
     private $action     = "";
     private $params     = [];
     private $args       = [];
-    
+
     /**
-     * ゲッター
+     * getter
      * 
      * @param   mixed    $key
      * @return  mixed
@@ -42,7 +49,7 @@ class Router
         {
             throw new InvalidParameterAccessException($this, $key);
         }
-        
+
         return $this->{$key};
     }
     
@@ -51,11 +58,11 @@ class Router
      * 
      * @return ROUTER
      */
-    public static function instance(): Router
+    public static function route(): Router
     {
         if(self::$instance === null)
         {
-            self::$instance = new self;
+            throw new NotInitializedException(Router::class);
         }
         return self::$instance;
     }
@@ -74,8 +81,10 @@ class Router
             self::$instance = new self;
         }
         //
-        $routes         = FETCHER::fetch($yml_path);
-        $route_obj      = ANALYZER::analyze($_SERVER["REQUEST_METHOD"], $_SERVER["REQUEST_URI"], $routes);
+        self::$entrypoint   = self::get_entrypoint();
+        //
+        $routes     = FETCHER::fetch($yml_path);
+        $route_obj  = ANALYZER::analyze(self::get_method(), self::get_request_parts(), $routes);
         //
         self::$instance->resolved   = $route_obj->resolved;
         self::$instance->route      = $route_obj->route;
@@ -88,14 +97,58 @@ class Router
         return self::$instance;
     }
 
-    public static function distribute(): string
+    private static function get_entrypoint(): string
     {
-        return self::get_entry_type();
+        return isset($_SERVER["SERVER_NAME"])
+                    ? EntryPoint::WEB
+                    : EntryPoint::CLI
+                    ;
     }
 
-    private static function get_entry_type(): string
+    private static function get_method(): string
     {
-        return isset($_SERVER["SERVER_NAME"]) ? self::ENTRY_WEB : self::ENTRY_CLI;
+        switch(self::$entrypoint)
+        {
+            case EntryPoint::CLI:
+
+                return "CLI";
+
+            case  EntryPoint::WEB:
+            default:
+
+                return $_SERVER["REQUEST_METHOD"];
+        }
     }
 
+    private static function get_request_parts(): array
+    {
+        switch(self::$entrypoint)
+        {
+            case EntryPoint::CLI:
+
+                $argv = $_SERVER["argv"] ?? [];
+                array_shift($argv);
+                return $argv;
+
+            case EntryPoint::WEB:
+            default:
+
+                $request_path = self::to_naked($_SERVER["REQUEST_URI"]);
+                return explode("/", $request_path);
+        }
+    }
+    
+    /**
+     * 先頭と末尾の / を取り除く
+     * 
+     * @param   string  $request_uri
+     * @return  string
+     */
+    private static function to_naked(string $request_uri): string
+    {
+        $temp   = preg_replace("|/+|u", "/", $request_uri);
+        if($temp === "/")   { return ""; }
+        return preg_replace("|^/?([^/].+[^/])/?|u", "$1", $temp);
+    }
+    
 }

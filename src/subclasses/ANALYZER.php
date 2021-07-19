@@ -2,7 +2,7 @@
 
 /**
  * Project Name: mikisan-ware
- * Description : ルーター
+ * Description : 汎用ルーター
  * Start Date  : 2021/07/17
  * Copyright   : Katsuhiko Miki   https://striking-forces.jp
  * 
@@ -14,31 +14,17 @@ namespace mikisan\core\util;
 
 class ANALYZER
 {
-    /**
-     * 先頭と末尾の / を取り除く
-     * 
-     * @param   string  $request_uri
-     * @return  string
-     */
-    private static function to_naked(string $request_uri): string
-    {
-        $temp   = preg_replace("|/+|u", "/", $request_uri);
-        if($temp === "/")   { return ""; }
-        return preg_replace("|^/?([^/].+[^/])/?|u", "$1", $temp);
-    }
     
     /**
      * 渡されたURIを解析し、メソッド、アクション等の情報を取得する
      *
      * @param   string  $request_method     $_SERVER["REQUEST_METHOD"]  例）GET
-     * @param   string  $request_uri        $_SERVER["REQUEST_URI"]     例）/admin/user/
+     * @param   array   $request_parts      例）[home, index] [make controller home]
      * @param   array   $routes             routes.ymlに設定されているルート情報
      * @return  \stdClass                   オブジェクト full_command, command, action, params
      */
-    public static function analyze(string $request_method, string $request_uri, array $routes): \stdClass
+    public static function analyze(string $request_method, array $request_parts, array $routes): \stdClass
     {
-        $request_path       = self::to_naked($request_uri);
-        
         foreach($routes as $route => $setting)
         {
             list($route_path, $temp_method)    = explode("@", $route);
@@ -47,11 +33,10 @@ class ANALYZER
             if($route_method !== "WILD" && $route_method !== $request_method)   { continue; }  // HTTPメソッド判定
             
             $route_parts    = explode("/", $route_path);
-            $request_parts  = explode("/", $request_path);
             $params         = [];
             $args           = [];
             
-            if(!self::collate($route_parts, $request_parts, $params, $args))     { continue; }
+            if(!self::collate($route_parts, $request_parts, $params, $args))    { continue; }
             
             // マッチ（ルート決定）        
             return self::set_route_obj($route, $route_method, $setting, $params, $args);

@@ -2,7 +2,7 @@
 
 /**
  * Project Name: mikisan-ware
- * Description : ルーター
+ * Description : 汎用ルーター
  * Start Date  : 2021/07/17
  * Copyright   : Katsuhiko Miki   https://striking-forces.jp
  * 
@@ -29,12 +29,9 @@ class FETCHER
         {
             throw new FileNotFoundException($yml_path);
         }
-        if(($yml = file_get_contents($yml_path)) === false)
-        {
-            throw new FileOpenFailedException($yml_path);
-        }
-        $temp           = YAML::parse($yml);
-        $keys           = array_keys($temp["routes"]);
+        $yml    = file_get_contents($yml_path);
+        $temp   = YAML::parse($yml);
+        $keys   = array_keys($temp["routes"]);
         rsort($keys);   // キーの逆順ソート
         
         $temp_routes    = [];

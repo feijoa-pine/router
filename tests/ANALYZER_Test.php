@@ -2,7 +2,7 @@
 
 /**
  * Project Name: mikisan-ware
- * Description : ルーター
+ * Description : 汎用ルーター
  * Start Date  : 2021/07/17
  * Copyright   : Katsuhiko Miki   https://striking-forces.jp
  * 
@@ -32,30 +32,13 @@ class ANALYZER_Test extends TestCaseExtend
         $yml_path       = realpath(__DIR__ . "/routes.yml");
         $this->routes   = FETCHER::fetch($yml_path);
     }
-    
-    /**
-     * 先頭と末尾の / を取り除くテスト
-     */
-    public function test_to_naked()
-    {
-        $this->assertEquals("home/index", $this->callMethod($this->class_name, "to_naked", ["/home/index"]));
-        $this->assertEquals("home/index", $this->callMethod($this->class_name, "to_naked", ["home/index/"]));
-        $this->assertEquals("home/index", $this->callMethod($this->class_name, "to_naked", ["/home/index/"]));
-        //
-        $this->assertEquals("home/index", $this->callMethod($this->class_name, "to_naked", ["///home///index"]));
-        $this->assertEquals("home/index", $this->callMethod($this->class_name, "to_naked", ["home///index///"]));
-        $this->assertEquals("home/index", $this->callMethod($this->class_name, "to_naked", ["///home//index///"]));
-        //
-        $this->assertEquals("", $this->callMethod($this->class_name, "to_naked", ["/"]));
-        $this->assertEquals("", $this->callMethod($this->class_name, "to_naked", ["////"]));
-    }
-    
+        
     /**
      * 渡されたURIを解析し、メソッド、アクション等の情報を取得する　テスト
      */
     public function test_analyze_001()
     {
-        $obj    = ANALYZER::analyze("GET", "/", $this->routes);
+        $obj    = ANALYZER::analyze("GET", [""], $this->routes);
         $this->assertTrue($obj->resolved);
         $this->assertEquals("@get",     $obj->route);
         $this->assertEquals("GET",      $obj->method);
@@ -67,7 +50,7 @@ class ANALYZER_Test extends TestCaseExtend
     
     public function test_analyze_002()
     {
-        $obj    = ANALYZER::analyze("POST", "/", $this->routes);
+        $obj    = ANALYZER::analyze("POST", [""], $this->routes);
         $this->assertFalse($obj->resolved);
         $this->assertEquals("",         $obj->route);
         $this->assertEquals("GET",      $obj->method);
@@ -79,7 +62,7 @@ class ANALYZER_Test extends TestCaseExtend
     
     public function test_analyze_003()
     {
-        $obj    = ANALYZER::analyze("POST", "/check", $this->routes);
+        $obj    = ANALYZER::analyze("POST", ["check"], $this->routes);
         $this->assertTrue($obj->resolved);
         $this->assertEquals("check@wild",   $obj->route);
         $this->assertEquals("WILD",     $obj->method);
@@ -91,7 +74,7 @@ class ANALYZER_Test extends TestCaseExtend
     
     public function test_analyze_004()
     {
-        $obj    = ANALYZER::analyze("GET", "/blog/writer/hoge/hage/123", $this->routes);
+        $obj    = ANALYZER::analyze("GET", ["blog", "writer", "hoge", "hage", "123"], $this->routes);
         $this->assertTrue($obj->resolved);
         $this->assertEquals("blog/writer/**@get",   $obj->route);
         $this->assertEquals("GET",      $obj->method);
@@ -106,7 +89,7 @@ class ANALYZER_Test extends TestCaseExtend
     
     public function test_analyze_005()
     {
-        $obj    = ANALYZER::analyze("GET", "/blog/hoge/category/123", $this->routes);
+        $obj    = ANALYZER::analyze("GET", ["blog", "hoge", "category", "123"], $this->routes);
         $this->assertTrue($obj->resolved);
         $this->assertEquals("blog/{id}/category/{cat_id}@get",   $obj->route);
         $this->assertEquals("GET",      $obj->method);

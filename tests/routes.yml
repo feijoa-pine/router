@@ -26,4 +26,8 @@ routes:
         "{id}/category/{cat_id}@get":
             module: blog
             action: category
+    make:
+        "{target_structure}/{target_module}@cli":
+            module: build
+            action: make
         

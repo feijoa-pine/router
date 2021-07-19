@@ -2,7 +2,7 @@
 
 /**
  * Project Name: mikisan-ware
- * Description : ルーター
+ * Description : 汎用ルーター
  * Start Date  : 2021/07/17
  * Copyright   : Katsuhiko Miki   https://striking-forces.jp
  * 
@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use mikisan\core\util\FETCHER;
+use mikisan\core\exception\FileNotFoundException;
+use mikisan\core\exception\FileOpenFailedException;
 
 $project_root = realpath(__DIR__ . "/../../../../");
 require_once "{$project_root}/vendor/autoload.php";
@@ -37,6 +39,31 @@ class FETCHER_Test extends TestCaseExtend
         $this->assertEquals("@get", $this->callMethod($this->class_name, "reformat_route", ["@get"]));
     }
     
+    public function test_fetch_file_not_exists()
+    {
+        $yml_path   = __DIR__ . "/routes_fake.yml";
+        
+        $this->expectException(FileNotFoundException::class);
+        $this->expectExceptionMessage("引数で渡されたファイルは存在しません。[{$yml_path}]");
+        
+        $r  = FETCHER::fetch($yml_path);
+    }
+    
+    public function test_fetch_file_open_failed()
+    {
+        // すべてのエラー処理でExceptionをスローする。
+        set_error_handler(
+            function($errno, $errstr, $errfile, $errline)   { throw new \ErrorException($errstr, 0, $errno, $errfile, $errline); }
+            , E_ALL
+        );
+        
+        $yml_path   = __DIR__;
+        
+        $this->expectException(ErrorException::class);
+        
+        $r  = FETCHER::fetch($yml_path);
+    }
+    
     /**
      * routes.yml を読み込み、ルートリストを取得する　のテスト
      */
@@ -46,7 +73,7 @@ class FETCHER_Test extends TestCaseExtend
         $r          = FETCHER::fetch($yml_path);
         //
         $this->assertIsArray($r);
-        $this->assertCount(7, $r);
+        $this->assertCount(8, $r);
         //
         $this->assertArrayHasKey("@get", $r);
         $this->assertEquals("home", $r["@get"]["module"]);
@@ -75,6 +102,10 @@ class FETCHER_Test extends TestCaseExtend
         $this->assertArrayHasKey("blog/{id}/category/{cat_id}@get", $r);
         $this->assertEquals("blog", $r["blog/{id}/category/{cat_id}@get"]["module"]);
         $this->assertEquals("category", $r["blog/{id}/category/{cat_id}@get"]["action"]);
+        //
+        $this->assertArrayHasKey("make/{target_structure}/{target_module}@cli", $r);
+        $this->assertEquals("build", $r["make/{target_structure}/{target_module}@cli"]["module"]);
+        $this->assertEquals("make", $r["make/{target_structure}/{target_module}@cli"]["action"]);
     }
     
 }
