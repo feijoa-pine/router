@@ -140,3 +140,7 @@ string  $action     ルート解決結果：使用するアクション
 array   $params     取得された埋め込みパラメタ
 array   $args       取得された末尾引数
 ```
+
+## License
+
+proprietary, not free software
